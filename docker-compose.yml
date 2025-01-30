@@ -1,0 +1,145 @@
+services:
+  ######################################################
+  #                    ZOOKEEPER                       #
+  ######################################################
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                      KAFKA                         #
+  ######################################################
+  kafka:
+    image: bitnami/kafka:2.8
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      # Point Kafka to our local Zookeeper
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                  ELASTICSEARCH                     #
+  ######################################################
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    networks:
+      - log-analytics
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ######################################################
+  #                      KIBANA                        #
+  ######################################################
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.9
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                    LOGSTASH                        #
+  ######################################################
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.9
+    container_name: logstash
+    depends_on:
+      - kafka
+      - elasticsearch
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5044:5044"
+      - "9600:9600"  # for Logstash monitoring API
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                 LOG PRODUCER APP                   #
+  ######################################################
+  log-producer:
+    build:
+      context: ./log-producer
+      dockerfile: Dockerfile
+    container_name: log-producer
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPIC=logs
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                     PROMETHEUS                     #
+  ######################################################
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                      CADVISOR                      #
+  ######################################################
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - log-analytics
+
+  ######################################################
+  #                       GRAFANA                      #
+  ######################################################
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    networks:
+      - log-analytics
+
+networks:
+  log-analytics:
+    driver: bridge
