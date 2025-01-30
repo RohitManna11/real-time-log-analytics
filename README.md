@@ -18,14 +18,18 @@ This project implements a real-time log analytics system using **Prometheus**, *
 1. Docker and Docker Compose installed.
 2. A Linux-based system (recommended: Ubuntu).
 3. Internet access for downloading required images.
+
 ---
+
 ### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/RohitManna11/real-time-log-analytics.git
 cd real-time-log-analytics
 ```
+
 ---
+
 ### Step 2: Start the Services
 
 Run the following command to bring up all the containers:
@@ -33,6 +37,7 @@ Run the following command to bring up all the containers:
 ```bash
 docker-compose up -d
 ```
+
 ---
 
 ### Step 3: Verify the Setup
@@ -45,6 +50,7 @@ docker-compose up -d
 - **cAdvisor**: Visit [http://localhost:8081](http://localhost:8081) to monitor containers.
 
 ---
+
 ## Directory Structure
 ```
 real-time-log-analytics/
@@ -53,5 +59,47 @@ real-time-log-analytics/
 ├── prometheus.yml # Prometheus configuration
 ├── grafana/
 ├── grafana.ini # Grafana configuration
-├── dashboards/ # Preconfigured dashboards (JSON) ├── elasticsearch/ │ ├── elasticsearch.yml # Elasticsearch configuration ├── kibana/ │ ├── kibana.yml # Kibana configuration ├── cadvisor/ # Directory for cAdvisor configuration ├── logs/ # Log files (excluded in .gitignore) ├── .gitignore # Files to ignore in version control └── README.md # Project documentation
+├── dashboards/ # Preconfigured dashboards (JSON)
+├── elasticsearch/
+├── elasticsearch.yml # Elasticsearch configuration
+├── kibana/
+├── kibana.yml # Kibana configuration
+├── cadvisor/ # Directory for cAdvisor configuration
+├── logs/ # Log files (excluded in .gitignore)
+├── .gitignore # Files to ignore in version control
+└── README.md # Project documentation
+```
+
+---
+
+## Configurations
+
+### **Prometheus**
+
+- **Configuration file**: `prometheus/prometheus.yml`
+- **Targets include**:
+  - cAdvisor (metrics collection)
+
+### **Grafana**
+
+- **Default dashboards**:
+  - Docker and System Monitoring: CPU, Memory, Disk, Network
+  - Log Analytics: Visualize logs from Elasticsearch
+
+### **Elasticsearch & Kibana**
+
+- **Elasticsearch** stores logs from containerized applications.
+- **Kibana dashboards** visualize log patterns, trends, and anomalies.
+
+---
+
+##Alerts
+Prometheus can be configured to send alerts based on system metrics. Example:
+```
+groups:
+  - name: alert.rules
+    rules:
+      - alert: HighCPUUsage
+        expr: avg(rate(container_cpu_usage_seconds_total[1m])) > 0.8
+        for: 1m
 ```
