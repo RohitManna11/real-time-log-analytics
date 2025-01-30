@@ -47,5 +47,11 @@ docker-compose up -d
 ---
 ## Directory Structure
 ```
-real-time-log-analytics/ ├── docker-compose.yml # Service definitions for Docker ├── prometheus/ │ ├── prometheus.yml # Prometheus configuration ├── grafana/ │ ├── grafana.ini # Grafana configuration │ ├── dashboards/ # Preconfigured dashboards (JSON) ├── elasticsearch/ │ ├── elasticsearch.yml # Elasticsearch configuration ├── kibana/ │ ├── kibana.yml # Kibana configuration ├── cadvisor/ # Directory for cAdvisor configuration ├── logs/ # Log files (excluded in .gitignore) ├── .gitignore # Files to ignore in version control └── README.md # Project documentation
+real-time-log-analytics/
+├── docker-compose.yml # Service definitions for Docker
+├── prometheus/
+├── prometheus.yml # Prometheus configuration
+├── grafana/
+├── grafana.ini # Grafana configuration
+├── dashboards/ # Preconfigured dashboards (JSON) ├── elasticsearch/ │ ├── elasticsearch.yml # Elasticsearch configuration ├── kibana/ │ ├── kibana.yml # Kibana configuration ├── cadvisor/ # Directory for cAdvisor configuration ├── logs/ # Log files (excluded in .gitignore) ├── .gitignore # Files to ignore in version control └── README.md # Project documentation
 ```
