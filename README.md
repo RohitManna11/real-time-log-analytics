@@ -93,7 +93,7 @@ real-time-log-analytics/
 
 ---
 
-##Alerts
+###Alerts
 Prometheus can be configured to send alerts based on system metrics. Example:
 ```
 groups:
